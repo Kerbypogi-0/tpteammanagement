@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            background: #1c1c1e;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2c2c2e;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .user-count {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .user-count-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: lowercase;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .header-right button {
+            background: none;
+            border: none;
+            color: #0a84ff;
+            font-size: 17px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .add-form {
+            background: #1c1c1e;
+            padding: 20px 16px;
+            display: none;
+            border-bottom: 1px solid #2c2c2e;
+        }
+
+        .add-form.active {
+            display: block;
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: #2c2c2e;
+            border: 1px solid #3a3a3c;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0a84ff;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .form-actions button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background: #0a84ff;
+            color: #fff;
+        }
+
+        .btn-cancel {
+            background: #2c2c2e;
+            color: #fff;
+        }
+
+        .search-container {
+            padding: 12px 16px;
+            background: #000;
+            position: sticky;
+            top: 57px;
+            z-index: 99;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 36px;
+            background: #1c1c1e;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .search-input:focus {
+            outline: none;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #666;
+            border: none;
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+        }
+
+        .clear-search.show {
+            display: block;
+        }
+
+        .section-header {
+            padding: 12px 16px 8px;
+            background: #000;
+            font-size: 13px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 121px;
+            z-index: 98;
+        }
+
+        .users-list {
+            background: #000;
+        }
+
+        .user-item {
+            background: #1c1c1e;
+            margin: 0 16px 12px;
+            padding: 16px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-date {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .user-badge {
+            background: #0a84ff;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .user-details {
+            display: grid;
+            gap: 8px;
+        }
+
+        .user-detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+        }
+
+        .detail-label {
+            color: #999;
+        }
+
+        .detail-value {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #2c2c2e;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            background: #2c2c2e;
+            border: none;
+            border-radius: 8px;
+            color: #0a84ff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-text {
+            color: #999;
+            font-size: 15px;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: #ff375f;
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 55, 95, 0.4);
+            z-index: 1000;
+        }
+
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1c1c1e;
+            padding: 12px 16px 24px;
+            border-top: 1px solid #2c2c2e;
+            display: flex;
+            gap: 12px;
+        }
+
+        .bottom-actions button {
+            flex: 1;
+            padding: 12px;
+            background: #2c2c2e;
+            border: none;
+            border-radius: 10px;
+            color: #0a84ff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(28, 28, 30, 0.95);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .users-list {
+                padding-bottom: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="user-count" id="userCount">0</div>
+            <div class="user-count-label">users</div>
+        </div>
+        <div class="header-title">USER MANAGEMENT</div>
+        <div class="header-right">
+            <button onclick="toggleForm()">Add</button>
+        </div>
+    </div>
+
+    <div class="add-form" id="addForm">
+        <div class="form-title">ADD USER</div>
+        
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="fullName" placeholder="Enter full name">
+        </div>
+
+        <div class="form-group">
+            <label>Discord Username</label>
+            <input type="text" id="discordUser" placeholder="user#1234">
+        </div>
+
+        <div class="form-group">
+            <label>UID</label>
+            <input type="text" id="uid" placeholder="Enter UID">
+        </div>
+
+        <div class="form-group">
+            <label>Initial Deposit</label>
+            <input type="number" id="initialDeposit" placeholder="0.00" step="0.01">
+        </div>
+
+        <div class="form-group">
+            <label>Upline/Inviter UID</label>
+            <input type="text" id="uplineUid" placeholder="Enter upline UID (optional)">
+        </div>
+
+        <div class="form-group">
+            <label>Date of Deposit</label>
+            <input type="date" id="depositDate">
+        </div>
+
+        <div class="form-actions">
+            <button class="btn-cancel" onclick="toggleForm()">Cancel</button>
+            <button class="btn-save" onclick="addUser()">Save</button>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search" oninput="searchUsers()">
+            <button class="clear-search" id="clearSearch" onclick="clearSearch()">×</button>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <span id="sectionTitle">USERS (0)</span>
+    </div>
+
+    <div class="users-list" id="usersList">
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <div class="empty-title">No Users Yet</div>
+            <div class="empty-text">Tap "Add" to create your first user</div>
+        </div>
+    </div>
+
+    <div class="bottom-actions">
+        <button onclick="copyAllData()">📋 Copy All</button>
+        <button onclick="exportAllData()">📥 Export</button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let users = [];
+
+        // Load users from localStorage
+        function loadUsers() {
+            try {
+                const savedUsers = localStorage.getItem('users');
+                if (savedUsers) {
+                    users = JSON.parse(savedUsers);
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                users = [];
+            }
+            displayUsers();
+            updateUserCount();
+        }
+
+        // Save users to localStorage
+        function saveUsers() {
+            try {
+                localStorage.setItem('users', JSON.stringify(users));
+                updateUserCount();
+            } catch (error) {
+                console.error('Error saving users:', error);
+                showToast('Error saving data');
+            }
+        }
+
+        function toggleForm() {
+            const form = document.getElementById('addForm');
+            form.classList.toggle('active');
+            if (!form.classList.contains('active')) {
+                clearForm();
+            }
+        }
+
+        function addUser() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const discordUser = document.getElementById('discordUser').value.trim();
+            const uid = document.getElementById('uid').value.trim();
+            const initialDeposit = document.getElementById('initialDeposit').value;
+            const uplineUid = document.getElementById('uplineUid').value.trim();
+            const depositDate = document.getElementById('depositDate').value;
+
+            if (!fullName || !discordUser || !uid || !initialDeposit || !depositDate) {
+                showToast('Please fill in all required fields');
+                return;
+            }
+
+            const user = {
+                id: Date.now(),
+                fullName,
+                discordUser,
+                uid,
+                initialDeposit: parseFloat(initialDeposit),
+                uplineUid: uplineUid || 'N/A',
+                depositDate,
+                createdAt: new Date().toISOString()
+            };
+
+            users.unshift(user);
+            saveUsers();
+            displayUsers();
+            toggleForm();
+            showToast('User added successfully');
+        }
+
+        function clearForm() {
+            document.getElementById('fullName').value = '';
+            document.getElementById('discordUser').value = '';
+            document.getElementById('uid').value = '';
+            document.getElementById('initialDeposit').value = '';
+            document.getElementById('uplineUid').value = '';
+            document.getElementById('depositDate').value = '';
+        }
+
+        function displayUsers(filteredUsers = null) {
+            const usersToDisplay = filteredUsers !== null ? filteredUsers : users;
+            const listContainer = document.getElementById('usersList');
+
+            if (usersToDisplay.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <div class="empty-title">No Users Found</div>
+                        <div class="empty-text">Try adjusting your search</div>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = usersToDisplay.map(user => `
+                <div class="user-item">
+                    <div class="user-header">
+                        <div>
+                            <div class="user-name">${user.fullName}</div>
+                            <div class="user-date">${new Date(user.depositDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                        </div>
+                        <div class="user-badge">$${user.initialDeposit.toFixed(2)}</div>
+                    </div>
+                    
+                    <div class="user-details">
+                        <div class="user-detail-row">
+                            <span class="detail-label">Discord</span>
+                            <span class="detail-value">${user.discordUser}</span>
+                        </div>
+                        <div class="user-detail-row">
+                            <span class="detail-label">UID</span>
+                            <span class="detail-value">${user.uid}</span>
+                        </div>
+                        <div class="user-detail-row">
+                            <span class="detail-label">Upline UID</span>
+                            <span class="detail-value">${user.uplineUid}</span>
+                        </div>
+                    </div>
+
+                    <div class="user-actions">
+                        <button class="btn-action" onclick="copyUser(${user.id})">Copy Details</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchUsers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const clearBtn = document.getElementById('clearSearch');
+            
+            if (searchTerm) {
+                clearBtn.classList.add('show');
+            } else {
+                clearBtn.classList.remove('show');
+            }
+
+            if (!searchTerm) {
+                displayUsers();
+                updateSectionTitle(users.length);
+                return;
+            }
+
+            const filtered = users.filter(user => 
+                user.fullName.toLowerCase().includes(searchTerm) ||
+                user.discordUser.toLowerCase().includes(searchTerm) ||
+                user.uid.includes(searchTerm)
+            );
+
+            displayUsers(filtered);
+            updateSectionTitle(filtered.length);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearch').classList.remove('show');
+            displayUsers();
+            updateSectionTitle(users.length);
+        }
+
+        function updateUserCount() {
+            document.getElementById('userCount').textContent = users.length;
+            updateSectionTitle(users.length);
+        }
+
+        function updateSectionTitle(count) {
+            document.getElementById('sectionTitle').textContent = `USERS (${count})`;
+        }
+
+        function copyUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            const userText = `Full Name: ${user.fullName}
+Discord Username: ${user.discordUser}
+UID: ${user.uid}
+Initial Deposit: $${user.initialDeposit.toFixed(2)}
+Upline/Inviter UID: ${user.uplineUid}
+Date of Deposit: ${new Date(user.depositDate).toLocaleDateString()}`;
+
+            navigator.clipboard.writeText(userText).then(() => {
+                showToast('User data copied');
+            }).catch(() => {
+                showToast('Failed to copy');
+            });
+        }
+
+        function copyAllData() {
+            if (users.length === 0) {
+                showToast('No users to copy');
+                return;
+            }
+
+            const allUsersText = users.map((user, index) => `User ${index + 1}:
+Full Name: ${user.fullName}
+Discord Username: ${user.discordUser}
+UID: ${user.uid}
+Initial Deposit: $${user.initialDeposit.toFixed(2)}
+Upline/Inviter UID: ${user.uplineUid}
+Date of Deposit: ${new Date(user.depositDate).toLocaleDateString()}
+${'='.repeat(50)}`).join('\n\n');
+
+            navigator.clipboard.writeText(allUsersText).then(() => {
+                showToast(`Copied ${users.length} users`);
+            }).catch(() => {
+                showToast('Failed to copy');
+            });
+        }
+
+        function exportAllData() {
+            if (users.length === 0) {
+                showToast('No users to export');
+                return;
+            }
+
+            const dataStr = JSON.stringify(users, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `users_export_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Set today's date as default
+        document.getElementById('depositDate').valueAsDate = new Date();
+        
+        // Load users when page loads
+        loadUsers();
+    </script>
+</body>
+</html>
